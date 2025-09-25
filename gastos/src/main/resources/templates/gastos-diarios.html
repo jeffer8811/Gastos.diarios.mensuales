@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Gastos Diarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <h2 class="text-center mb-4">📋 Gastos Diarios</h2>
+<div class="mb-3 d-flex justify-content-between align-items-center">
+    <!-- Botón de Inicio a la izquierda -->
+    <div>
+        <a class="btn btn-secondary" th:href="@{/}">🏠 Inicio</a>
+    </div>
+
+    <!-- Botones a la derecha -->
+    <div class="d-flex gap-2">
+        <a class="btn btn-success" th:href="@{/gastos/nuevo}">➕ Agregar Gasto</a>
+        <a class="btn btn-warning" th:href="@{/gastos?tipo=MENSUAL}">📅 Ver Gastos Mensuales</a>
+    </div>
+</div>
+
+
+        <!-- Buscador por rango de fechas -->
+        <form class="row g-3 mb-4" th:action="@{/gastos}" method="get">
+            <input type="hidden" name="tipo" value="DIARIO">
+            <div class="col-md-4">
+                <label for="fechaInicio" class="form-label">Desde</label>
+                <input type="date" id="fechaInicio" name="fechaInicio" class="form-control" th:value="${fechaInicio}">
+            </div>
+            <div class="col-md-4">
+                <label for="fechaFin" class="form-label">Hasta</label>
+                <input type="date" id="fechaFin" name="fechaFin" class="form-control" th:value="${fechaFin}">
+            </div>
+            <div class="col-md-4 d-flex align-items-end gap-2">
+                <button type="button" class="btn btn-info flex-fill" onclick="ponerHoy()">📅 Hoy</button>
+                <button type="submit" class="btn btn-primary flex-fill">🔍 Filtrar</button>
+            </div>
+        </form>
+
+        <!-- Tabla de gastos diarios -->
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Categoría</th>
+                    <th>Monto (S/.)</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="gasto, iterStat : ${gastos}">
+                    <td th:text="${iterStat.index + 1}"></td>
+                    <td th:text="${gasto.categoria}"></td>
+                    <td th:text="${#numbers.formatDecimal(gasto.monto, 1, 'POINT', 2, 'POINT')}"></td>
+                    <td th:text="${gasto.fecha}"></td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr class="fw-bold">
+                    <td colspan="2" class="text-end">TOTAL GASTOS DIARIOS:</td>
+                    <td th:text="${#numbers.formatDecimal(totalDiario, 1, 'POINT', 2, 'POINT')}"></td>
+                    <td></td>
+                </tr>
+                <tr class="fw-bold table-warning">
+                    <td colspan="2" class="text-end">TOTAL GASTOS MENSUALES:</td>
+                    <td th:text="${#numbers.formatDecimal(totalMensual, 1, 'POINT', 2, 'POINT')}"></td>
+                    <td></td>
+                </tr>
+                <tr class="fw-bold table-info">
+                    <td colspan="2" class="text-end">PRESUPUESTO DEL MES:</td>
+                    <td th:text="${#numbers.formatDecimal(presupuesto.monto, 1, 'POINT', 2, 'POINT')}"></td>
+                    <td></td>
+                </tr>
+                <tr class="fw-bold" th:classappend="${saldoDisponible < 0} ? 'table-danger' : 'table-success'">
+                    <td colspan="2" class="text-end">SALDO DISPONIBLE:</td>
+                    <td th:text="${#numbers.formatDecimal(saldoDisponible, 1, 'POINT', 2, 'POINT')}"></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+
+        </table>
+    </div>
+
+    <script>
+        function ponerHoy() {
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fechaInicio').value = hoy;
+            document.getElementById('fechaFin').value = hoy;
+            document.querySelector('form').submit();
+        }
+    </script>
+
+</body>
+
+</html>

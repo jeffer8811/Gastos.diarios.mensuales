@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Inicio - Control de Gastos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+    <div class="container text-center mt-5">
+        <h1>💰 Bienvenido al Control de Gastos</h1>
+
+        <!-- Alerta de saldo disponible -->
+        <div class="alert" th:classappend="${saldoDisponible < 0} ? ' alert-danger' : ' alert-success'">
+            <strong th:if="${saldoDisponible < 0}">
+                ⚠️ Te has excedido del presupuesto en 
+                <span th:text="${#numbers.formatDecimal(-saldoDisponible, 1, 'POINT', 2, 'POINT')}"></span> soles.
+            </strong>
+
+            <strong th:unless="${saldoDisponible < 0}">
+                ✅ Te queda un saldo disponible de 
+                <span th:text="${#numbers.formatDecimal(saldoDisponible, 1, 'POINT', 2, 'POINT')}"></span> soles.
+            </strong>
+        </div>
+
+        <div class="mt-4">
+            <h4>📊 Resumen del Mes</h4>
+            <ul class="list-group w-50 mx-auto">
+                <li class="list-group-item">Presupuesto: <strong th:text="${presupuesto.monto} ?: '0.00'"></strong> soles</li>
+                <li class="list-group-item">Gastos diarios: <strong th:text="${totalDiario} ?: '0.00'"></strong> soles</li>
+                <li class="list-group-item">Gastos mensuales: <strong th:text="${totalMensual} ?: '0.00'"></strong> soles</li>
+                <li class="list-group-item">Saldo disponible: 
+                    <strong th:text="${saldoDisponible} ?: '0.00'"></strong> soles
+                </li>
+            </ul>
+        </div>
+
+        <!-- Ver gastos -->
+        <div class="mt-4">
+            <h4>📋 Ver Gastos</h4>
+            <div class="d-flex justify-content-center gap-3 mt-2">
+                <a class="btn btn-primary" href="/gastos?tipo=DIARIO">Ver gastos diarios</a>
+                <a class="btn btn-warning" href="/gastos?tipo=MENSUAL">Ver gastos mensuales</a>
+                <!-- Nuevo botón para historial -->
+                <a class="btn btn-secondary" href="/historial">📅 Ver gastos pasados</a>
+            </div>
+        </div>
+
+        <!-- Definir presupuesto -->
+        <div class="mt-4">
+            <a class="btn btn-success" th:href="@{/presupuesto}">Definir Presupuesto del Mes</a>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Agregar Gasto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <div class="container mt-5">
+        <h2 class="mb-4">➕ Agregar Gasto</h2>
+
+        <!-- Paso 1: Selección de tipo de gasto -->
+        <div id="seleccionTipo" class="card p-4 shadow-sm">
+            <label class="form-label fw-bold">Selecciona el tipo de gasto:</label>
+            <div class="d-flex gap-3">
+                <button class="btn btn-info flex-fill" onclick="mostrarFormulario('DIARIO')">Diario</button>
+                <button class="btn btn-warning flex-fill" onclick="mostrarFormulario('MENSUAL')">Mensual</button>
+            </div>
+        </div>
+
+        <!-- Paso 2: Formulario -->
+        <form id="formGasto" th:action="@{/gastos/agregar}" th:object="${gasto}" method="post"
+            class="card p-4 shadow-sm mt-4 d-none">
+            <input type="hidden" th:field="*{tipo}" id="tipoGasto">
+
+            <div class="mb-3">
+                <label class="form-label">Categoría</label>
+                <select th:field="*{categoria}" class="form-select" required id="categoriaGasto">
+                    <!-- Categorías por defecto, luego se filtrará según tipo -->
+                    <option value="Comida">🍔 Comida</option>
+                    <option value="Luz">💡 Luz</option>
+                    <option value="Agua">🚰 Agua</option>
+                    <option value="Internet">🌐 Internet</option>
+                    <option value="Transporte">🚌 Transporte</option>
+                    <option value="Salud">⚕️ Salud</option>
+                    <option value="Educación">📚 Educación</option>
+                    <option value="Ocio">🎉 Ocio</option>
+                    <option value="Otros">🔹 Otros</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Monto (S/.)</label>
+                <input type="number" th:field="*{monto}" class="form-control" step="0.01" min="0" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Fecha</label>
+                <input type="date" th:field="*{fecha}" class="form-control">
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a th:href="@{/gastos}" class="btn btn-secondary">⬅ Volver</a>
+                <button type="submit" class="btn btn-primary">💾 Guardar</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function mostrarFormulario(tipo) {
+            // Guardar el tipo en el campo hidden
+            document.getElementById('tipoGasto').value = tipo;
+
+            // Filtrar categorías según tipo
+            const select = document.getElementById('categoriaGasto');
+            select.innerHTML = ''; // limpiar opciones
+
+            if (tipo === 'DIARIO') {
+                const opciones = ['🍔 Comida', '☕ Café', '🍩 Snacks', '🚌 Transporte', '🎉 Ocio', '👕 Ropa', '🔹 Otros'];
+                opciones.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.split(' ')[1]; // separar emoji y texto
+                    option.textContent = cat;
+                    select.appendChild(option);
+                });
+            } else if (tipo === 'MENSUAL') {
+                const opciones = ['🏦 Banco', '💳 Tarjeta', '🏠 Alquiler', '💡 Luz', '🚰 Agua', '🌐 Internet', '📶 Suscripciones', '🔹 Otros'];
+                opciones.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.split(' ')[1];
+                    option.textContent = cat;
+                    select.appendChild(option);
+                });
+            }
+
+            // Mostrar formulario y ocultar selección
+            document.getElementById('formGasto').classList.remove('d-none');
+            document.getElementById('seleccionTipo').classList.add('d-none');
+        }
+    </script>
+
+</body>
+
+</html>
