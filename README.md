@@ -80,7 +80,7 @@ Totales y saldo restante
 
 Clonar el repositorio:
 
-git clone https://github.com/usuario/gastos.git
+[git clone https://github.com/usuario/gastos.git](https://github.com/jeffer8811/Gastos.diarios.mensuales)
 cd gastos
 
 
