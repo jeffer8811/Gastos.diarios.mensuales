@@ -5,83 +5,101 @@
     <meta charset="UTF-8">
     <title>Gastos Mensuales</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .dashboard-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            background-color: #fff;
+            margin-bottom: 30px;
+        }
+        .btn-lg {
+            min-width: 150px;
+        }
+    </style>
 </head>
 
-<body class="bg-light">
-
+<body>
     <div class="container mt-5">
         <h2 class="text-center mb-4">📋 Gastos Mensuales</h2>
 
-        <!-- Botón de Inicio -->
-        <div class="mb-3">
-            <a class="btn btn-secondary" th:href="@{/}">🏠 Inicio</a>
-        </div>
-
-        <div class="mb-3 d-flex justify-content-end gap-2">
-            <!-- Botón para agregar un gasto -->
-            <a class="btn btn-success" th:href="@{/gastos/nuevo}">➕ Agregar Gasto</a>
-
-            <!-- Botón para ir a Gastos Diarios -->
-            <a class="btn btn-info" th:href="@{/gastos?tipo=DIARIO}">📅 Ver Gastos Diarios</a>
+        <!-- Botones de navegación -->
+        <div class="dashboard-card d-flex justify-content-between flex-wrap mb-4">
+            <div>
+                <a class="btn btn-secondary btn-lg mb-2" th:href="@{/}">🏠 Inicio</a>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a class="btn btn-success btn-lg mb-2" th:href="@{/gastos/nuevo}">➕ Agregar Gasto</a>
+                <a class="btn btn-info btn-lg mb-2" th:href="@{/gastos?tipo=DIARIO}">📅 Gastos Diarios</a>
+            </div>
         </div>
 
         <!-- Buscador por rango de fechas -->
-        <form id="form-filtrar" class="row g-3 mb-4" th:action="@{/gastos/mensuales}" method="get">
-            <div class="col-md-4">
-                <label for="fechaInicio" class="form-label">Desde</label>
-                <input type="date" id="fechaInicio" name="fechaInicio" class="form-control" th:value="${fechaInicio}">
-            </div>
-            <div class="col-md-4">
-                <label for="fechaFin" class="form-label">Hasta</label>
-                <input type="date" id="fechaFin" name="fechaFin" class="form-control" th:value="${fechaFin}">
-            </div>
-            <div class="col-md-4 d-flex align-items-end gap-2">
-                <button type="button" class="btn btn-info flex-fill" onclick="ponerHoy()">📅 Hoy</button>
-                <button type="submit" class="btn btn-primary flex-fill">🔍 Filtrar</button>
-            </div>
-        </form>
+        <div class="dashboard-card mb-4">
+            <form id="form-filtrar" class="row g-3" th:action="@{/gastos/mensuales}" method="get">
+                <div class="col-md-4">
+                    <label for="fechaInicio" class="form-label">Desde</label>
+                    <input type="date" id="fechaInicio" name="fechaInicio" class="form-control" th:value="${fechaInicio}">
+                </div>
+                <div class="col-md-4">
+                    <label for="fechaFin" class="form-label">Hasta</label>
+                    <input type="date" id="fechaFin" name="fechaFin" class="form-control" th:value="${fechaFin}">
+                </div>
+                <div class="col-md-4 d-flex align-items-end gap-2 flex-wrap">
+                    <button type="button" class="btn btn-info flex-fill" onclick="ponerHoy()">📅 Hoy</button>
+                    <button type="submit" class="btn btn-primary flex-fill">🔍 Filtrar</button>
+                </div>
+            </form>
+        </div>
 
         <!-- Tabla de gastos mensuales -->
-        <table class="table table-striped">
-            <thead class="table-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Categoría</th>
-                    <th>Monto (S/.)</th>
-                    <th>Fecha</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="gasto, iterStat : ${gastos}">
-                    <td th:text="${iterStat.index + 1}"></td>
-                    <td th:text="${gasto.categoria}"></td>
-                    <td th:text="${#numbers.formatDecimal(gasto.monto != null ? gasto.monto : 0, 1, 'POINT', 2, 'POINT')}"></td>
-                    <td th:text="${gasto.fecha}"></td>
-                </tr>
-            </tbody>
-            <tfoot>
-                <tr class="fw-bold">
-                    <td colspan="2" class="text-end">TOTAL GASTOS MENSUALES:</td>
-                    <td th:text="${#numbers.formatDecimal(totalMensual != null ? totalMensual : 0, 1, 'POINT', 2, 'POINT')}"></td>
-                    <td></td>
-                </tr>
-                <tr class="fw-bold table-warning">
-                    <td colspan="2" class="text-end">TOTAL GASTOS DIARIOS:</td>
-                    <td th:text="${#numbers.formatDecimal(totalDiario != null ? totalDiario : 0, 1, 'POINT', 2, 'POINT')}"></td>
-                    <td></td>
-                </tr>
-                <tr class="fw-bold table-info">
-                    <td colspan="2" class="text-end">PRESUPUESTO DEL MES:</td>
-                    <td th:text="${#numbers.formatDecimal(presupuesto != null && presupuesto.monto != null ? presupuesto.monto : 0, 1, 'POINT', 2, 'POINT')}"></td>
-                    <td></td>
-                </tr>
-                <tr class="fw-bold" th:classappend="${saldoDisponible != null && saldoDisponible < 0} ? 'table-danger' : 'table-success'">
-                    <td colspan="2" class="text-end">SALDO DISPONIBLE:</td>
-                    <td th:text="${#numbers.formatDecimal(saldoDisponible != null ? saldoDisponible : 0, 1, 'POINT', 2, 'POINT')}"></td>
-                    <td></td>
-                </tr>
-            </tfoot>
-        </table>
+        <div class="dashboard-card">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Categoría</th>
+                            <th>Monto (S/.)</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="gasto, iterStat : ${gastos}">
+                            <td th:text="${iterStat.index + 1}"></td>
+                            <td th:text="${gasto.categoria}"></td>
+                            <td th:text="${#numbers.formatDecimal(gasto.monto != null ? gasto.monto : 0, 1, 'POINT', 2, 'POINT')}"></td>
+                            <td th:text="${gasto.fecha}"></td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="fw-bold">
+                        <tr>
+                            <td colspan="2" class="text-end">TOTAL GASTOS MENSUALES:</td>
+                            <td th:text="${#numbers.formatDecimal(totalMensual != null ? totalMensual : 0, 1, 'POINT', 2, 'POINT')}"></td>
+                            <td></td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td colspan="2" class="text-end">TOTAL GASTOS DIARIOS:</td>
+                            <td th:text="${#numbers.formatDecimal(totalDiario != null ? totalDiario : 0, 1, 'POINT', 2, 'POINT')}"></td>
+                            <td></td>
+                        </tr>
+                        <tr class="table-info">
+                            <td colspan="2" class="text-end">PRESUPUESTO DEL MES:</td>
+                            <td th:text="${#numbers.formatDecimal(presupuesto != null && presupuesto.monto != null ? presupuesto.monto : 0, 1, 'POINT', 2, 'POINT')}"></td>
+                            <td></td>
+                        </tr>
+                        <tr th:classappend="${saldoDisponible != null && saldoDisponible < 0} ? 'table-danger' : 'table-success'">
+                            <td colspan="2" class="text-end">SALDO DISPONIBLE:</td>
+                            <td th:text="${#numbers.formatDecimal(saldoDisponible != null ? saldoDisponible : 0, 1, 'POINT', 2, 'POINT')}"></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>

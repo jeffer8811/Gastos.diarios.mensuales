@@ -7,6 +7,8 @@ import com.example.gastos.repository.PresupuestoRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,32 +26,43 @@ public class GastoController {
     private PresupuestoRepository presupuestoRepository;
 
     // Página principal
-    @GetMapping("/")
-    public String index(Model model) {
-        int mes = LocalDate.now().getMonthValue();
-        int anio = LocalDate.now().getYear();
+@GetMapping("/")
+public String index(Model model) {
+    int mes = LocalDate.now().getMonthValue();
+    int anio = LocalDate.now().getYear();
 
-        Presupuesto presupuesto = presupuestoRepository.findByMesAndAnio(mes, anio)
-                .orElse(new Presupuesto(0.0, mes, anio));
+    Presupuesto presupuesto = presupuestoRepository.findByMesAndAnio(mes, anio)
+            .orElse(new Presupuesto(0.0, mes, anio));
 
-        LocalDate inicioMes = LocalDate.of(anio, mes, 1);
-        LocalDate hoy = LocalDate.now();
+    LocalDate inicioMes = LocalDate.of(anio, mes, 1);
+    LocalDate hoy = LocalDate.now();
 
-        double totalDiario = gastoRepository.findByTipoAndFechaBetween("DIARIO", inicioMes, hoy)
-                .stream().mapToDouble(g -> g.getMonto() != null ? g.getMonto() : 0).sum();
+    double totalDiario = gastoRepository.findByTipoAndFechaBetween("DIARIO", inicioMes, hoy)
+            .stream().mapToDouble(g -> g.getMonto() != null ? g.getMonto() : 0).sum();
 
-        double totalMensual = gastoRepository.findByTipoAndFechaBetween("MENSUAL", inicioMes, hoy)
-                .stream().mapToDouble(g -> g.getMonto() != null ? g.getMonto() : 0).sum();
+    double totalMensual = gastoRepository.findByTipoAndFechaBetween("MENSUAL", inicioMes, hoy)
+            .stream().mapToDouble(g -> g.getMonto() != null ? g.getMonto() : 0).sum();
 
-        double saldoDisponible = presupuesto.getMonto() - totalDiario - totalMensual;
+    double saldoDisponible = presupuesto.getMonto() - totalDiario - totalMensual;
 
-        model.addAttribute("totalDiario", totalDiario);
-        model.addAttribute("totalMensual", totalMensual);
-        model.addAttribute("saldoDisponible", saldoDisponible);
-        model.addAttribute("presupuesto", presupuesto);
+    model.addAttribute("totalDiario", totalDiario);
+    model.addAttribute("totalMensual", totalMensual);
+    model.addAttribute("saldoDisponible", saldoDisponible);
+    model.addAttribute("presupuesto", presupuesto);
 
-        return "index";
-    }
+    // ---- NUEVO: Gastos por categoría ----
+    List<Gasto> gastosMes = gastoRepository.findByFechaBetween(inicioMes, hoy);
+    Map<String, Double> gastosPorCategoria = gastosMes.stream()
+            .filter(g -> g.getCategoria() != null)
+            .collect(Collectors.groupingBy(
+                    Gasto::getCategoria,
+                    Collectors.summingDouble(g -> g.getMonto() != null ? g.getMonto() : 0)
+            ));
+    model.addAttribute("gastosPorCategoria", gastosPorCategoria);
+
+    return "index";
+}
+
 
     // Formulario para nuevo gasto
     @GetMapping("/gastos/nuevo")

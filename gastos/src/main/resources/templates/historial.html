@@ -5,78 +5,116 @@
     <meta charset="UTF-8">
     <title>Historial de Gastos</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .dashboard-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            background-color: #fff;
+            margin-bottom: 30px;
+        }
+        .btn-lg {
+            min-width: 120px;
+        }
+        .alert-info {
+            font-size: 1rem;
+        }
+    </style>
 </head>
 
-<body class="container mt-5">
-    <h1>📋 Historial de Gastos</h1>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">📋 Historial de Gastos</h1>
 
-    <!-- Formulario para filtrar -->
-    <form method="get" th:action="@{/historial}" class="row g-3 mb-4">
-        <div class="col-md-3">
-            <label for="mes" class="form-label">Mes</label>
-            <select id="mes" name="mes" class="form-select">
-                <option value="">-- Todos --</option>
-                <option th:value="1" th:selected="${mes == 1}">Enero</option>
-                <option th:value="2" th:selected="${mes == 2}">Febrero</option>
-                <option th:value="3" th:selected="${mes == 3}">Marzo</option>
-                <option th:value="4" th:selected="${mes == 4}">Abril</option>
-                <option th:value="5" th:selected="${mes == 5}">Mayo</option>
-                <option th:value="6" th:selected="${mes == 6}">Junio</option>
-                <option th:value="7" th:selected="${mes == 7}">Julio</option>
-                <option th:value="8" th:selected="${mes == 8}">Agosto</option>
-                <option th:value="9" th:selected="${mes == 9}">Septiembre</option>
-                <option th:value="10" th:selected="${mes == 10}">Octubre</option>
-                <option th:value="11" th:selected="${mes == 11}">Noviembre</option>
-                <option th:value="12" th:selected="${mes == 12}">Diciembre</option>
-            </select>
-        </div>
+    <!-- Formulario de filtros -->
+    <div class="dashboard-card">
+        <form id="form-filtros" method="get" th:action="@{/historial}" class="row g-3">
+            <div class="col-md-3">
+                <label for="mes" class="form-label fw-bold">Mes</label>
+                <select id="mes" name="mes" class="form-select">
+                    <option value="">-- Seleccione --</option>
+                    <option th:value="1" th:selected="${mes == 1}">Enero</option>
+                    <option th:value="2" th:selected="${mes == 2}">Febrero</option>
+                    <option th:value="3" th:selected="${mes == 3}">Marzo</option>
+                    <option th:value="4" th:selected="${mes == 4}">Abril</option>
+                    <option th:value="5" th:selected="${mes == 5}">Mayo</option>
+                    <option th:value="6" th:selected="${mes == 6}">Junio</option>
+                    <option th:value="7" th:selected="${mes == 7}">Julio</option>
+                    <option th:value="8" th:selected="${mes == 8}">Agosto</option>
+                    <option th:value="9" th:selected="${mes == 9}">Septiembre</option>
+                    <option th:value="10" th:selected="${mes == 10}">Octubre</option>
+                    <option th:value="11" th:selected="${mes == 11}">Noviembre</option>
+                    <option th:value="12" th:selected="${mes == 12}">Diciembre</option>
+                </select>
+            </div>
 
-<div class="col-md-3">
-    <label for="anio" class="form-label">Año</label>
-    <input type="number" class="form-control" id="anio" name="anio"
-           th:value="${anio != null} ? ${anio} : ${#dates.format(#dates.createNow(), 'yyyy')}"
-           placeholder="2025">
-</div>
-        <div class="col-md-3">
-            <label for="tipo" class="form-label">Tipo</label>
-            <select id="tipo" name="tipo" class="form-select">
-                <option value="">-- Todos --</option>
-                <option value="DIARIO" th:selected="${tipo == 'DIARIO'}">DIARIO</option>
-                <option value="MENSUAL" th:selected="${tipo == 'MENSUAL'}">MENSUAL</option>
-            </select>
-        </div>
+            <div class="col-md-3">
+                <label for="anio" class="form-label fw-bold">Año</label>
+                <input type="number" class="form-control" id="anio" name="anio"
+                       th:value="${anio != null} ? ${anio} : ${#dates.format(#dates.createNow(), 'yyyy')}"
+                       placeholder="2025">
+            </div>
 
+            <div class="col-md-3">
+                <label for="tipo" class="form-label fw-bold">Tipo</label>
+                <select id="tipo" name="tipo" class="form-select">
+                    <option value="">-- Seleccione --</option>
+                    <option value="DIARIO" th:selected="${tipo == 'DIARIO'}">DIARIO</option>
+                    <option value="MENSUAL" th:selected="${tipo == 'MENSUAL'}">MENSUAL</option>
+                </select>
+            </div>
 
-        <div class="col-md-3 align-self-end">
-            <button type="submit" class="btn btn-primary">Filtrar</button>
-        </div>
-    </form>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary btn-lg w-100">Filtrar</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Mensaje si no se seleccionaron filtros -->
+    <div th:if="${mes == null and anio == null and tipo == null}" class="alert alert-info text-center">
+        Por favor, seleccione al menos un filtro para ver o exportar los gastos.
+    </div>
+
+    <!-- Botones de exportación -->
+    <div class="mb-3 text-end" th:if="${mes != null or anio != null or tipo != null}">
+        <a th:href="@{/historial/exportar(
+              mes=${mes}, anio=${anio}, tipo=${tipo})}"
+           class="btn btn-success me-2">📄 Exportar PDF</a>
+
+        <a th:href="@{/historial/exportarExcel(
+              mes=${mes}, anio=${anio}, tipo=${tipo})}"
+           class="btn btn-primary">📊 Exportar Excel</a>
+    </div>
 
     <!-- Tabla de resultados -->
-    <table class="table table-striped">
-        <thead>
+    <div class="dashboard-card" th:if="${mes != null or anio != null or tipo != null}">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
             <tr>
                 <th>Fecha</th>
                 <th>Monto (S/.)</th>
                 <th>Tipo</th>
             </tr>
-        </thead>
-        <tbody>
-            <!-- Itera sobre los gastos -->
+            </thead>
+            <tbody>
             <tr th:each="gasto : ${gastos}">
                 <td th:text="${gasto.fecha}"></td>
                 <td th:text="${#numbers.formatDecimal(gasto.monto, 1, 'POINT', 2, 'POINT')}"></td>
                 <td th:text="${gasto.tipo}"></td>
             </tr>
 
-            <!-- Si no hay gastos -->
             <tr th:if="${#lists.isEmpty(gastos)}">
-                <td colspan="4" class="text-center">No hay gastos para mostrar</td>
+                <td colspan="3" class="text-center">No hay gastos para mostrar con los filtros seleccionados</td>
             </tr>
-        </tbody>
-    </table>
+            </tbody>
+        </table>
 
-    <a href="/" class="btn btn-secondary">⬅ Volver al inicio</a>
+        <a href="/" class="btn btn-secondary btn-lg mt-3">⬅ Volver al inicio</a>
+    </div>
+</div>
+
 </body>
-
 </html>

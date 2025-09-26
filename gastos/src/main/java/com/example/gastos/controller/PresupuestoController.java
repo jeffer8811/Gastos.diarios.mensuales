@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 
@@ -21,15 +22,15 @@ public class PresupuestoController {
         this.presupuestoRepository = presupuestoRepository;
     }
 
-    // ✅ Permitir que "" en el form se convierta a null en Double
+    // Permitir que "" en el form se convierta a null en Double
     @InitBinder
     public void initBinder(WebDataBinder binder) {
         binder.registerCustomEditor(Double.class, new CustomNumberEditor(Double.class, true));
     }
 
-    // ✅ Ver presupuesto del mes actual
+    // Ver presupuesto del mes actual
     @GetMapping
-    public String verPresupuesto(Model model) {
+    public String verPresupuesto(Model model, @ModelAttribute("mensaje") String mensaje) {
         int mes = LocalDate.now().getMonthValue();
         int anio = LocalDate.now().getYear();
 
@@ -37,42 +38,43 @@ public class PresupuestoController {
         Presupuesto presupuesto = presupuestoRepository.findByMesAndAnio(mes, anio)
                 .orElseGet(() -> new Presupuesto(0.0, mes, anio));
 
-        // 👇 Necesario para que Thymeleaf tenga el objeto del formulario
         model.addAttribute("presupuesto", presupuesto);
-
+        model.addAttribute("mensaje", mensaje); // Para mostrar alertas en Thymeleaf
         return "presupuesto"; // Vista: presupuesto.html
     }
 
-    // ✅ Guardar o actualizar presupuesto
+    // Guardar o actualizar presupuesto
     @PostMapping("/guardar")
     public String guardarPresupuesto(
             @ModelAttribute("presupuesto") Presupuesto presupuesto,
-            BindingResult bindingResult) {
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttrs) {
 
-        // Si hubo error de binding en 'monto' o viene null → poner en 0.0
         if (bindingResult.hasFieldErrors("monto") || presupuesto.getMonto() == null) {
             presupuesto.setMonto(0.0);
         }
 
-        // Buscar si ya existe presupuesto para el mismo mes y año
         Presupuesto existente = presupuestoRepository.findByMesAndAnio(
                 presupuesto.getMes(), presupuesto.getAnio()).orElse(null);
 
         if (existente != null) {
-            double montoExistente = existente.getMonto() != 0 ? existente.getMonto() : 0.0;
-            double montoNuevo = presupuesto.getMonto() != 0 ? presupuesto.getMonto() : 0.0;
-            existente.setMonto(montoExistente + montoNuevo);
+            existente.setMonto(presupuesto.getMonto()); // Reemplaza monto
             presupuestoRepository.save(existente);
         } else {
             presupuestoRepository.save(presupuesto);
         }
 
+        redirectAttrs.addFlashAttribute("mensaje",
+                "✅ Tu presupuesto para " + presupuesto.getMes() + "/" + presupuesto.getAnio()
+                        + " es S/. " + presupuesto.getMonto());
+
         return "redirect:/presupuesto";
     }
 
-    // ✅ Aumentar monto del presupuesto actual
+    // Aumentar monto del presupuesto actual
     @PostMapping("/aumentar")
-    public String aumentarPresupuesto(@RequestParam double incremento) {
+    public String aumentarPresupuesto(@RequestParam double incremento,
+                                      RedirectAttributes redirectAttrs) {
         int mes = LocalDate.now().getMonthValue();
         int anio = LocalDate.now().getYear();
 
@@ -81,6 +83,10 @@ public class PresupuestoController {
 
         existente.setMonto(existente.getMonto() + incremento);
         presupuestoRepository.save(existente);
+
+        redirectAttrs.addFlashAttribute("mensaje",
+                "⬆️ Tu presupuesto se incrementó en S/. " + incremento
+                        + ". Total: S/. " + existente.getMonto());
 
         return "redirect:/presupuesto";
     }
