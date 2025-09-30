@@ -1,4 +1,5 @@
 🧾 Gestión de Gastos – Spring Boot
+<img width="1904" height="939" alt="controldegastos" src="https://github.com/user-attachments/assets/1fcb9835-57b2-42fd-9241-04252a5818ec" />
 
 Este proyecto es una aplicación web de control de gastos personales, desarrollada con Spring Boot, Thymeleaf, Bootstrap y MySQL. Permite registrar gastos diarios y mensuales, filtrar por fechas, y visualizar un resumen del presupuesto disponible.
 
